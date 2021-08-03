@@ -19,6 +19,7 @@ module Docx
 
         attr_reader :text
         attr_reader :formatting
+        attr_reader :text_nodes
         
         def initialize(node, document_properties = {})
           @node = node

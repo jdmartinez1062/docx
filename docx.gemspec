@@ -2,10 +2,10 @@ $:.unshift File.expand_path("../lib", __FILE__)
 require 'docx/version'
 
 Gem::Specification.new do |s|
-  s.name        = 'docx'
+  s.name        = 'docx-parser'
   s.version     = Docx::VERSION
   s.licenses    = ['MIT']
-  s.summary     = 'a ruby library/gem for interacting with .docx files'
+  s.summary     = 'a ruby library/gem for interacting with .docx files with a light modification from the docx gem in order to allow easier use of the parsed data'
   s.description = 'thin wrapper around rubyzip and nokogiri as a way to get started with docx files'
   s.authors     = ['Christopher Hunt', 'Marcus Ortiz', 'Higgins Dragon', 'Toms Mikoss', 'Sebastian Wittenkamp']
   s.email       = ['chrahunt@gmail.com']
