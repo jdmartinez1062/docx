@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
-require 'docx'
+require 'docx-parser'
 require 'tempfile'
 
 describe Docx::Document do
@@ -90,7 +90,7 @@ describe Docx::Document do
 
     describe '#paragraphs' do
       it 'should not grabs paragraphs in the tables' do
-        expect(@doc.paragraphs.map(&:text)).to_not include("Second table")
+        expect(@doc.paragraphs.map(&:text)).to_not include('Second table')
       end
     end
   end
@@ -352,11 +352,11 @@ describe Docx::Document do
     before do
       @doc = Docx::Document.open(@fixtures_path + '/formatting.docx')
       @formatted_line = @doc.paragraphs[5]
-      @p_regex = /(^\<p).+((?<=\>)\w+)(\<\/p>$)/
-      @span_regex = /(\<span).+((?<=\>)\w+)(<\/span>)/
-      @em_regex = /(\<em).+((?<=\>)\w+)(\<\/em\>)/
-      @strong_regex = /(\<strong).+((?<=\>)\w+)(\<\/strong\>)/
-      @anchor_tag_regex = /\<a href="(.+)" target="_blank"\>(.+)\<\/a>/
+      @p_regex = %r{(^<p).+((?<=\>)\w+)(</p>$)}
+      @span_regex = %r{(<span).+((?<=\>)\w+)(</span>)}
+      @em_regex = %r{(<em).+((?<=\>)\w+)(</em>)}
+      @strong_regex = %r{(<strong).+((?<=\>)\w+)(</strong>)}
+      @anchor_tag_regex = %r{<a href="(.+)" target="_blank">(.+)</a>}
     end
 
     it 'should wrap pragraphs in a p tag' do
@@ -381,19 +381,19 @@ describe Docx::Document do
     end
 
     it 'should underline underlined text' do
-      scan = @doc.paragraphs[3].to_html.scan(/\<span\s+([^\>]+)/).flatten
+      scan = @doc.paragraphs[3].to_html.scan(/<span\s+([^>]+)/).flatten
       expect(scan.first).to eq 'style="text-decoration:underline;"'
     end
 
     it 'should justify paragraphs' do
-      regex = /^<p[^\"]+.(?<=\")([^\"]+)/
+      regex = /^<p[^"]+.(?<=")([^"]+)/
       expect(@doc.paragraphs[6].to_html.scan(regex).flatten.first.split(';').include?('text-align:center')).to eq(true)
       expect(@doc.paragraphs[7].to_html.scan(regex).flatten.first.split(';').include?('text-align:left')).to eq(false)
       expect(@doc.paragraphs[8].to_html.scan(regex).flatten.first.split(';').include?('text-align:right')).to eq(true)
     end
 
     it 'should set font size on styled paragraphs' do
-      regex = /(\<p{1})[^\>]+style\=\"([^\"]+).+(<\/p>)/
+      regex = %r{(<p{1})[^>]+style="([^"]+).+(</p>)}
       scan = @doc.paragraphs[9].to_html.scan(regex).flatten
       expect(scan.first).to eq '<p'
       expect(scan.last).to eq '</p>'
@@ -401,7 +401,7 @@ describe Docx::Document do
     end
 
     it 'should set font size on styled text runs' do
-      regex = /(\<span)[^\>]+style\=\"([^\"]+)[^\<]+(<\/span>)/
+      regex = %r{(<span)[^>]+style="([^"]+)[^<]+(</span>)}
       scan = @doc.paragraphs[10].to_html.scan(regex).flatten
       expect(scan.first).to eq '<span'
       expect(scan.last).to eq '</span>'
@@ -422,12 +422,12 @@ describe Docx::Document do
       expect(scan.first).to eq '<span'
       expect(scan.last).to eq '</span>'
       expect(scan[1]).to eq 'different'
-      scan = paragraph.to_html.scan(/\<span\s+([^\>]+)/).flatten
+      scan = paragraph.to_html.scan(/<span\s+([^>]+)/).flatten
       expect(scan.first).to eq 'style="text-decoration:underline;"'
     end
 
     it 'should output an entire document as html fragment' do
-      expect(@doc.to_html.scan(/(\<p)/).flatten.size).to eq(@formatting_line_count)
+      expect(@doc.to_html.scan(/(<p)/).flatten.size).to eq(@formatting_line_count)
     end
 
     it 'should output styled html' do
@@ -440,8 +440,8 @@ describe Docx::Document do
 
     it 'should convert hyperlinks to anchor tags' do
       scan = @doc.to_html.scan(@anchor_tag_regex).flatten
-      expect(scan[0]).to eq "http://www.google.com/"
-      expect(scan[1]).to eq "hyperlink"
+      expect(scan[0]).to eq 'http://www.google.com/'
+      expect(scan[1]).to eq 'hyperlink'
     end
   end
 
